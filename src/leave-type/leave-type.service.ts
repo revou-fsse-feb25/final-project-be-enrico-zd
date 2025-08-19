@@ -1,26 +1,51 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateLeaveTypeDto } from './dto/create-leave-type.dto';
 import { UpdateLeaveTypeDto } from './dto/update-leave-type.dto';
+import { LeaveTypeRepository } from './leave-type.repository';
+import { UserCompanyDetailService } from 'src/user-company-detail/user-company-detail.service';
 
 @Injectable()
 export class LeaveTypeService {
-  create(createLeaveTypeDto: CreateLeaveTypeDto) {
-    return 'This action adds a new leaveType';
+  constructor(
+    private readonly leaveTypeRepository: LeaveTypeRepository,
+    private readonly userCompDetailService: UserCompanyDetailService,
+  ) {}
+
+  async createLeaveType(data: CreateLeaveTypeDto, userId: number) {
+    const userDetail =
+      await this.userCompDetailService.findUserCompByUserId(userId);
+
+    if (!userDetail) {
+      throw new NotFoundException('User detail not found');
+    }
+    return await this.leaveTypeRepository.createLeaveType(
+      data,
+      userDetail.company_id,
+    );
   }
 
-  findAll() {
-    return `This action returns all leaveType`;
+  async findAllLeaveTypeByComapnyId(userId: number) {
+    const userDetail =
+      await this.userCompDetailService.findUserCompByUserId(userId);
+
+    if (!userDetail) {
+      throw new NotFoundException('User detail not found');
+    }
+
+    return await this.leaveTypeRepository.findAllLeaveTypeByCompanyId(
+      userDetail.company_id,
+    );
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} leaveType`;
+  async findLeaveTypeById(id: number) {
+    return this.leaveTypeRepository.findLeaveTypeById(id);
   }
 
-  update(id: number, updateLeaveTypeDto: UpdateLeaveTypeDto) {
-    return `This action updates a #${id} leaveType`;
+  async updateLeaveType(id: number, data: UpdateLeaveTypeDto) {
+    return this.leaveTypeRepository.updateLeaveType(id, data);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} leaveType`;
+  async deleteLeaveType(id: number) {
+    return this.leaveTypeRepository.deleteLeaveType(id);
   }
 }

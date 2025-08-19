@@ -1,34 +1,68 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Body,
+  Patch,
+  Param,
+  Query,
+  ParseIntPipe,
+  UseGuards,
+} from '@nestjs/common';
 import { AttendanceService } from './attendance.service';
-import { CreateAttendanceDto } from './dto/create-attendance.dto';
-import { UpdateAttendanceDto } from './dto/update-attendance.dto';
+import { CheckInDto, CheckOutDto } from './dto/req/update-attendance.dto';
+import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { User } from '@prisma/client';
+import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/guard/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 
 @Controller('attendance')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}
 
-  @Post()
-  create(@Body() createAttendanceDto: CreateAttendanceDto) {
-    return this.attendanceService.create(createAttendanceDto);
-  }
-
   @Get()
-  findAll() {
-    return this.attendanceService.findAll();
+  @Roles('ADMIN')
+  async findAllCompanyAttendance(
+    @Query('company_id', ParseIntPipe) companyId: number,
+  ) {
+    return this.attendanceService.findAllCompanyAttendance(companyId);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.attendanceService.findOne(+id);
+  @Get('/employee')
+  @Roles('ADMIN')
+  async findAllAttendanceByUserId(
+    @Query('user_id', ParseIntPipe) userId: number,
+  ) {
+    return this.attendanceService.findAllAttendanceByUserId(userId);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAttendanceDto: UpdateAttendanceDto) {
-    return this.attendanceService.update(+id, updateAttendanceDto);
+  @Get('/history')
+  async findAllUserAttendanceHistory(@CurrentUser() user: User) {
+    return this.attendanceService.findAllUserAttendanceHistory(user.user_id);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.attendanceService.remove(+id);
+  @Patch('checkin/:id')
+  async employeeCheckIn(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: CheckInDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.attendanceService.employeeCheckIn(id, user.role, data);
+  }
+
+  @Patch('checkout/:id')
+  async employeeCheckOut(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: CheckOutDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.attendanceService.employeeCheckOut(id, user.role, data);
+  }
+
+  @Patch('reset/:id')
+  @Roles('ADMIN')
+  async resetAttendance(@Param('id', ParseIntPipe) id: number) {
+    return this.attendanceService.resetAttendance(id)
   }
 }

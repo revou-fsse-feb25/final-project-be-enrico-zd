@@ -63,11 +63,11 @@ enum PaidLeave {
     NO
 }
 
-// leave status
-enum LeaveStatus { 
-  PENDING 
-  APPROVED 
-  REJECTED 
+// status approval
+enum StatusApproval { 
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 // attendance status
@@ -96,7 +96,7 @@ model Company {
   company_owner    String
   company_address  String?
   company_email    String         @unique
-  company_phone    String?
+  company_phone    String
   web_url          String?        @db.VarChar(255)
   npwp             String?        @db.VarChar(50)
   payroll_date     Int?           @default(1)// 1..31
@@ -110,6 +110,8 @@ model Company {
   shifts           Shift[]
   employments      UserCompanyDetail[]
   leave_types      LeaveType[]
+  leave_requests   LeaveRequest[]
+  attendance       Attendance[]
 
   @@index([status])
 }
@@ -123,7 +125,7 @@ model Shift {
   closing_time    DateTime  @db.Time(0)
   status          StatusActive  @default(ACTIVE)
 
-  company         Company @relation(fields: [company_id], references: [company_id])
+  company         Company @relation(fields: [company_id], references: [company_id], onDelete: Cascade)
   employments     UserCompanyDetail[]   @relation("ShiftEmployments")
   attendances     Attendance[] @relation("ShiftAttendances")
   created_at      DateTime     @default(now())
@@ -137,18 +139,18 @@ model Shift {
 // ---------- User ----------
 model User {
   user_id              Int          @id @default(autoincrement())
-  nik                  String?      @unique
-  family_card_number   String?      @unique
-  employment_number    String?      @unique
+  nik                  String?      
+  family_card_number   String?      
+  employment_number    String?      
   passport_number      String?
   name                 String
   address              String?
-  email                String       @unique
+  email                String       
   phone_number         String?
   date_of_birth        DateTime?    @db.Date
   avatar               String?      @default("https://tsicosek65.ufs.sh/f/9OL1U8bKcTC4BjCjHrwy1ahUIZfoPJ8Vg3FNurbWDcLyntjv")
   gender               Gender       @default(MALE)
-  username             String       @unique
+  username             String       
   password             String
   last_login           DateTime     @default(now())
   refresh_token        String?
@@ -166,92 +168,108 @@ model User {
 
 // ---------- Employment (user-company-shift snapshot) ----------
 model UserCompanyDetail {
-  user_company_id  Int          @id @default(autoincrement())
-  user_id          Int
-  company_id       Int
-  employee_type    EmployeeType
-  user_type        UserType
-  joining_date     DateTime     @db.Date
-  leaving_date     DateTime?    @db.Date
-  shift_id         Int?
-  workspace        WorkSpace
-  user_status      StatusActive @default(ACTIVE)
-  created_at       DateTime     @default(now())
-  updated_at       DateTime     @updatedAt
+  user_company_id          Int          @id @default(autoincrement())
+  user_id                  Int
+  company_id               Int
+  employee_type            EmployeeType
+  user_type                UserType
+  joining_date             DateTime     @db.Date
+  leaving_date             DateTime?    @db.Date
+  shift_id                 Int?
+  workspace                WorkSpace
+  user_status              StatusActive @default(ACTIVE)
+  employee_username        String
+  created_at               DateTime     @default(now())
+  updated_at               DateTime     @updatedAt
 
-  user             User         @relation(fields: [user_id], references: [user_id])
-  company          Company      @relation(fields: [company_id], references: [company_id])
-  shift            Shift?       @relation("ShiftEmployments", fields: [shift_id], references: [shift_id])
+  user                     User         @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  company                  Company      @relation(fields: [company_id], references: [company_id], onDelete: Cascade)
+  shift                    Shift?       @relation("ShiftEmployments", fields: [shift_id], references: [shift_id], onDelete: SetNull)
 
   @@index([user_id, company_id])
   @@index([company_id, shift_id])
-  // Opsional: hanya satu employment aktif per user-company
-  // @@unique([user_id, company_id, user_status])
+  @@unique([company_id, employee_username])
+  @@unique([user_id, company_id, user_status])
 }
 
 // ---------- Attendance ----------
 model Attendance {
   attendance_id      Int               @id @default(autoincrement())
   user_id            Int
-  attendance_date    DateTime          @db.Date            // YYYY-MM-DD
-  check_in_at        DateTime?           @db.Time(0)         // HH:MM:SS
-  check_out_at       DateTime?           @db.Time(0)
+  company_id         Int
+  attendance_date    DateTime          @db.Date             @default(now())        // YYYY-MM-DD
+  check_in_at        DateTime?         @db.Time(0)          // HH:MM:SS
+  check_out_at       DateTime?         @db.Time(0)
   shift_id           Int?                                   // snapshot
-  attendance_status  AttendanceStatus  @default(PRESENT)
-  attendance_by      AttendanceBy      @default(SELF)
+  attendance_status  AttendanceStatus  @default(ABSENT)
+  attendance_by      AttendanceBy?      
   hours_work_min     Int               @default(0)          // menit
   late_minute        Int               @default(0)
   overtime_min       Int               @default(0)
-  created_at         DateTime     @default(now())
-  updated_at         DateTime     @updatedAt
+  status             StatusApproval    @default(PENDING) 
+  created_at         DateTime          @default(now())
+  updated_at         DateTime          @updatedAt
 
-  user               User              @relation(fields: [user_id], references: [user_id])
-  shift              Shift?            @relation("ShiftAttendances", fields: [shift_id], references: [shift_id])
+  user               User              @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  company  Company @relation(fields: [company_id], references: [company_id], onDelete: Cascade)
+  shift    Shift?  @relation("ShiftAttendances", fields: [shift_id], references: [shift_id], onDelete: SetNull)
 
+  // Index & Unique
   @@index([user_id, attendance_date])
+  @@index([company_id, attendance_date])
+  @@index([company_id, user_id])
+
+  // 🛡️ cegah duplikasi kehadiran per user per hari dalam satu company
+  @@unique([company_id, user_id, attendance_date])
 }
 
 // ---------- Leave Type ----------
 model LeaveType {
-  leave_type_id       Int     @id @default(autoincrement())
+  leave_type_id       Int       @id @default(autoincrement())
   company_id          Int
   leave_type_name     String
   paid_leave          PaidLeave
-  leave_allocated_day Int    @default(0)
-  created_at          DateTime     @default(now())
-  updated_at          DateTime     @updatedAt
+  leave_allocated_day Int?
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
 
-  company            Company @relation(fields: [company_id], references: [company_id])
-  leave_requests     LeaveRequest[]
+  company        Company       @relation(fields: [company_id], references: [company_id], onDelete: Cascade)
+  leave_requests LeaveRequest[]
 
   @@unique([company_id, leave_type_name])
   @@index([company_id])
+  @@unique([leave_type_id, company_id])
 }
 
-// ---------- Leave Request ----------
 model LeaveRequest {
-  leave_request_id     Int         @id @default(autoincrement())
-  leave_type_id  Int
-  user_id        Int
-  reason         String?
-  proof_image    String?
-  from           DateTime    @db.Timestamp(0)
-  to             DateTime    @db.Timestamp(0)
-  request_date   DateTime    @default(now()) @db.Timestamp(0)
-  requested_days Int         
-  status         LeaveStatus @default(PENDING)
-  approved_by    Int?
-  approved_at    DateTime?   @db.Timestamp(0)
-  admin_remark   String?
-  created_at     DateTime     @default(now())
-  updated_at     DateTime     @updatedAt
+  leave_request_id Int         @id @default(autoincrement())
+  company_id       Int
+  leave_type_id    Int
+  user_id          Int
+  reason           String?
+  proof_image      String?
+  from             DateTime    @db.Timestamp(0)
+  to               DateTime    @db.Timestamp(0)
+  request_date     DateTime    @default(now()) @db.Timestamp(0)
+  requested_days   Int
+  status           StatusApproval @default(PENDING)
+  approved_by      Int?
+  approved_at      DateTime?   @db.Timestamp(0)
+  admin_remark     String?
+  created_at       DateTime    @default(now())
+  updated_at       DateTime    @updatedAt
 
-  type           LeaveType  @relation(fields: [leave_type_id], references: [leave_type_id])
-  user           User        @relation("leave_requests_by_user", fields: [user_id], references: [user_id])
-  approver       User?       @relation("leave_requests_approver", fields: [approved_by], references: [user_id])
+  company     Company            @relation(fields: [company_id], references: [company_id], onDelete: Cascade)
 
+  type        LeaveType          @relation(fields: [leave_type_id, company_id],references: [leave_type_id, company_id], onDelete: Cascade)
+
+  user        User               @relation("leave_requests_by_user", fields: [user_id], references: [user_id], onDelete: Cascade)
+  approver    User?              @relation("leave_requests_approver", fields: [approved_by], references: [user_id], onDelete: SetNull)
+
+  // Index
+  @@index([company_id, request_date])
   @@index([user_id, request_date])
-  @@index([leave_type_id])
+  @@index([leave_type_id, company_id])
   @@index([status])
 }
 

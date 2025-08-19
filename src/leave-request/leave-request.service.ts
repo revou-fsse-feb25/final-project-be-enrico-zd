@@ -1,26 +1,100 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateLeaveRequestDto } from './dto/create-leave-request.dto';
 import { UpdateLeaveRequestDto } from './dto/update-leave-request.dto';
+import { LeaveRequestRepository } from './leave-request.repository';
+import { UserCompanyDetailService } from 'src/user-company-detail/user-company-detail.service';
 
 @Injectable()
 export class LeaveRequestService {
-  create(createLeaveRequestDto: CreateLeaveRequestDto) {
-    return 'This action adds a new leaveRequest';
+  constructor(
+    private readonly leaveRequestRepository: LeaveRequestRepository,
+    private readonly userCompDetailService: UserCompanyDetailService,
+  ) {}
+
+  async createLeaveRequest(data: CreateLeaveRequestDto, userId: number) {
+    const { leave_type_id, from, to, reason, proof_image } = data;
+
+    const userDetail =
+      await this.userCompDetailService.findUserCompByUserId(userId);
+
+    if (!userDetail) {
+      throw new NotFoundException('User detail not found');
+    }
+
+    if (from > to) {
+      throw new Error('end date must be after start date');
+    }
+
+    // count requested_day
+    const MS_PER_DAY = 86_400_000;
+    const requested_days =
+      Math.ceil(
+        (Date.parse(to.toISOString()) - Date.parse(from.toISOString())) /
+          MS_PER_DAY,
+      ) + 1;
+
+    return await this.leaveRequestRepository.createLeaveRequest(
+      {
+        leave_type_id,
+        from,
+        to,
+        reason,
+        proof_image,
+      },
+      requested_days,
+      userDetail.company_id,
+      userId,
+    );
   }
 
-  findAll() {
-    return `This action returns all leaveRequest`;
+  async findAllLeaveRequestByCompanyId(userId: number) {
+    const userDetail =
+      await this.userCompDetailService.findUserCompByUserId(userId);
+
+    if (!userDetail) {
+      throw new NotFoundException('User detail not found');
+    }
+
+    return await this.leaveRequestRepository.findAllLeaveRequestByCompanyId(
+      userDetail.company_id,
+    );
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} leaveRequest`;
+  async findAllLeaveRequestByType(userId: number, typeId: number) {
+    const userDetail =
+      await this.userCompDetailService.findUserCompByUserId(userId);
+
+    if (!userDetail) {
+      throw new NotFoundException('User detail not found');
+    }
+
+    return this.leaveRequestRepository.findAllLeaveRequestByType(
+      userId,
+      userDetail.company_id,
+      typeId,
+    );
   }
 
-  update(id: number, updateLeaveRequestDto: UpdateLeaveRequestDto) {
-    return `This action updates a #${id} leaveRequest`;
+  async findLeaveTypeById(id: number) {
+    return this.leaveRequestRepository.findLeaveTypeById(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} leaveRequest`;
+  async approveLeaveRequest(
+    id: number,
+    userId: number,
+    data: UpdateLeaveRequestDto,
+  ) {
+    const leaveRequestCompany =
+      await this.findAllLeaveRequestByCompanyId(userId);
+
+    const validLeaveRequest = leaveRequestCompany.some(
+      (leaveReq) => leaveReq.leave_request_id === id,
+    );
+
+    if (!validLeaveRequest) {
+      throw new NotFoundException(`Leave Request dengan id ${id} tidak valid`);
+    }
+
+    return this.leaveRequestRepository.approveLeaveRequest(id, userId, data);
   }
 }

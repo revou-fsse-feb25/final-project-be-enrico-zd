@@ -28,6 +28,16 @@ export class UserRepository {
     return user;
   }
 
+  async findUserByUsername(username: string): Promise<User | null> {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        username,
+      },
+    });
+
+    return user;
+  }
+
   async updateUser(id: number, data: UpdateUserDto): Promise<User> {
     await this.findUserById(id);
     return this.prisma.user.update({

@@ -4,9 +4,18 @@ import {
   UserType,
   WorkSpace,
 } from '@prisma/client';
-import { IsDate, IsEnum, IsNotEmpty, IsNumber } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsDate,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { CreateUserDto } from 'src/users/dto/req/create-user.dto';
 
-export class CreateUserCompanyDetailDto {
+export class createEmployeeDto {
   @IsNotEmpty()
   @IsNumber()
   user_id: number;
@@ -29,9 +38,9 @@ export class CreateUserCompanyDetailDto {
   @IsDate()
   joining_date: Date;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsDate()
-  leaving_date: Date;
+  leaving_date: Date | null;
 
   @IsNotEmpty()
   @IsNumber()
@@ -46,4 +55,18 @@ export class CreateUserCompanyDetailDto {
     message: 'User type must be either ACTIVE or INACTIVE',
   })
   user_status: StatusActive;
+
+  @IsNotEmpty()
+  @IsString()
+  employee_username: string;
+}
+
+export class CreateUserCompanyDetailDto {
+  @IsNotEmpty()
+  @Type(() => CreateUserDto)
+  user: CreateUserDto;
+
+  @IsNotEmpty()
+  @Type(() => createEmployeeDto)
+  employee: createEmployeeDto;
 }

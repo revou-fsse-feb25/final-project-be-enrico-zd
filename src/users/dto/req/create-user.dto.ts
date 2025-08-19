@@ -1,9 +1,9 @@
 import { Gender, Role } from '@prisma/client';
 import {
+  IsDate,
   IsEmail,
   IsEnum,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
   Matches,
@@ -11,19 +11,23 @@ import {
 } from 'class-validator';
 
 export class CreateUserDto {
+  @IsOptional()
   @Matches(/^\d+$/, { message: 'NIK must be a number' })
   @IsString()
-  nik: string;
+  nik: string | null;
 
+  @IsOptional()
   @Matches(/^\d+$/, { message: 'NIK must be a number' })
   @IsString()
-  family_card_number: string;
+  family_card_number: string | null;
 
+  @IsOptional()
   @IsString()
-  employment_number: string;
+  employment_number: string | null;
 
+  @IsOptional()
   @IsString()
-  passport_number: string;
+  passport_number: string | null;
 
   @IsNotEmpty()
   @IsString()
@@ -41,9 +45,13 @@ export class CreateUserDto {
   @IsString()
   phone_number: string;
 
+  @IsNotEmpty()
+  @IsDate()
+  date_of_birth: Date;
+
   @IsOptional()
   @IsString()
-  avatar: string;
+  avatar?: string;
 
   @IsEnum(Gender, { message: 'Gender must be either MALE or FEMALE' })
   gender: Gender;

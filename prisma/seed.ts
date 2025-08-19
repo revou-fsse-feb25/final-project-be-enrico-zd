@@ -3,7 +3,7 @@ import {
   AttendanceStatus,
   EmployeeType,
   Gender,
-  LeaveStatus,
+  StatusApproval,
   PaidLeave,
   PrismaClient,
   Role,
@@ -105,6 +105,7 @@ async function main() {
         shift_id: shift1.shift_id,
         workspace: WorkSpace.OFFICE,
         user_status: StatusActive.ACTIVE,
+        employee_username: 'jamals',
       },
       {
         user_id: user2.user_id,
@@ -116,6 +117,7 @@ async function main() {
         shift_id: shift1.shift_id,
         workspace: WorkSpace.HOME,
         user_status: StatusActive.ACTIVE,
+        employee_username: 'sitir',
       },
     ],
   });
@@ -125,6 +127,7 @@ async function main() {
     data: [
       {
         user_id: user1.user_id,
+        company_id: company1.company_id,
         attendance_date: new Date('2025-08-12'),
         check_in_at: new Date(`1970-01-01T08:15:00Z`),
         check_out_at: new Date(`1970-01-01T17:05:00Z`),
@@ -134,9 +137,11 @@ async function main() {
         hours_work_min: 480,
         late_minute: 5,
         overtime_min: 60,
+        status: StatusApproval.APPROVED,
       },
       {
         user_id: user2.user_id,
+        company_id: company1.company_id,
         attendance_date: new Date('2025-08-12'),
         check_in_at: new Date(`1970-01-01T08:45:00Z`),
         check_out_at: new Date(`1970-01-01T16:30:00Z`),
@@ -146,6 +151,7 @@ async function main() {
         hours_work_min: 450,
         late_minute: 15,
         overtime_min: 0,
+        status: StatusApproval.APPROVED,
       },
     ],
   });
@@ -164,14 +170,15 @@ async function main() {
   await prisma.leaveRequest.create({
     data: {
       leave_type_id: annualLeave.leave_type_id,
+      company_id: company1.company_id,
       user_id: user1.user_id,
       reason: 'Family vacation',
       proof_image: 'ticket.png',
       from: new Date('2025-08-20T00:00:00Z'),
       to: new Date('2025-10-25T00:00:00Z'),
       requested_days: 3,
-      status: LeaveStatus.PENDING,
-      approved_by: user2.user_id,
+      status: StatusApproval.PENDING,
+      approved_by: null,
       approved_at: null,
     },
   });
