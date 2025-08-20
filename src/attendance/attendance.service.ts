@@ -10,6 +10,7 @@ import { Cron } from '@nestjs/schedule';
 import { ShiftsService } from 'src/shifts/shifts.service';
 import { Role } from '@prisma/client';
 import { intervalTime } from 'src/utils/interval-time.utils';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class AttendanceService {
@@ -19,7 +20,7 @@ export class AttendanceService {
     private readonly shiftService: ShiftsService,
   ) {}
 
-  @Cron('0 5 0 * * *', { timeZone: 'Asia/Jakarta' })
+  @Cron('0 5 0 * * *', { name: randomUUID(), timeZone: 'Asia/Jakarta' })
   async createAllDefaultUserAttendance() {
     const userDetail = await this.userCompDetailService.findAllUserCom();
 
