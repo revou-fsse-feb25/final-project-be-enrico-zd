@@ -1,4 +1,4 @@
-import { Controller, Get, Body, Patch, Post, UseGuards } from '@nestjs/common';
+import { Controller, Get, Body, Patch, Post, UseGuards, Param, ParseIntPipe } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { CreateCompanyDto } from './dto/create-company.dto';
@@ -17,6 +17,16 @@ export class CompanyController {
     try {
       const company = this.companyService.createCompany(data);
       return company;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  @Get(':id')
+  async findCompanyById(@Param('id', ParseIntPipe) id: number){
+    try {
+      const company = await this.companyService.findCompanyById(id)
+      return company
     } catch (error) {
       console.error(error);
     }

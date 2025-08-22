@@ -29,6 +29,9 @@ export class AttendanceRepository {
         company_id: companyId,
         attendance_date: new Date(),
       },
+      include: {
+        user: true,
+      }
     });
   }
 

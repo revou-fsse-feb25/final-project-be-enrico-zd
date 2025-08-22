@@ -35,6 +35,8 @@ export class LeaveRequestRepository {
       },
       include: {
         user: true,
+        approver: true,
+        type: true,
       },
     });
   }

@@ -26,6 +26,7 @@ export class UserCompanyDetailController {
   ) {}
 
   @Get(':id')
+  @Roles('ADMIN')
   async findUserCompById(@Param('id', ParseIntPipe) id: number) {
     try {
       const userCompDetail =
