@@ -1,4 +1,13 @@
-import { Controller, Get, Body, Patch, Post, UseGuards, Param, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Body,
+  Patch,
+  Post,
+  UseGuards,
+  Param,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { CreateCompanyDto } from './dto/create-company.dto';
@@ -23,10 +32,10 @@ export class CompanyController {
   }
 
   @Get(':id')
-  async findCompanyById(@Param('id', ParseIntPipe) id: number){
+  async findCompanyById(@Param('id', ParseIntPipe) id: number) {
     try {
-      const company = await this.companyService.findCompanyById(id)
-      return company
+      const company = await this.companyService.findCompanyById(id);
+      return company;
     } catch (error) {
       console.error(error);
     }
@@ -57,6 +66,25 @@ export class CompanyController {
         user.user_id,
         data,
       );
+      return company;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  @Patch('/softDelete/:id')
+  async softDeleteCompany(@Param('id', ParseIntPipe) id: number) {
+    try {
+      const company = await this.companyService.softDeleteCompany(id);
+      return company;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  @Patch('/restore/:id')
+  async restoreCompany(@Param('id', ParseIntPipe) id: number) {
+    try {
+      const company = await this.companyService.restoreCompany(id);
       return company;
     } catch (error) {
       console.error(error);

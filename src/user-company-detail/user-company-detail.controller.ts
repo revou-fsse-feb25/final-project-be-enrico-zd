@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   NotFoundException,
   Param,
@@ -90,6 +91,18 @@ export class UserCompanyDetailController {
         data,
       );
       return usercompDetail;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  @Delete(':id')
+  @Roles('ADMIN')
+  async deleteUserComp(@Param('id', ParseIntPipe) id: number) {
+    try {
+      const userCompDetail =
+        await this.userCompanyDetailService.deleteUserComp(id);
+      return userCompDetail;
     } catch (error) {
       console.error(error);
     }
