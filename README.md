@@ -56,4 +56,4 @@ Berikut dokumentasi untuk [ERD](https://drive.google.com/file/d/1eaqYP3KAHAmBCdP
 
 ## Link Deployment
 
-Berikut link untuk API [Link Deploy](https://final-project-be-enrico-zd-production.up.railway.app/)
+Akses link untuk API [Here](https://final-project-be-enrico-zd-production.up.railway.app/)
