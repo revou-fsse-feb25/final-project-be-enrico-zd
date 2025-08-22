@@ -12,8 +12,13 @@ export class AttendanceRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async createAllDefaultUserAttendance(data: CreateAttendanceDto[]) {
+    const now = new Date();
     return this.prisma.attendance.createManyAndReturn({
-      data,
+      data: data.map((d) => ({
+        ...d,
+        attendance_date: new Date(now.getTime() + 7 * 60 * 60 * 1000),
+      })),
+      skipDuplicates: true,
       select: {
         attendance_id: true,
         user_id: true,
@@ -24,14 +29,15 @@ export class AttendanceRepository {
   }
 
   async findAllCompanyAttendance(companyId: number) {
+    const now = new Date();
     return this.prisma.attendance.findMany({
       where: {
         company_id: companyId,
-        attendance_date: new Date(),
+        attendance_date: new Date(now.getTime() + 7 * 60 * 60 * 1000),
       },
       include: {
         user: true,
-      }
+      },
     });
   }
 
@@ -64,6 +70,9 @@ export class AttendanceRepository {
 
   async employeeCheckIn(userId: number, data: CheckInDto) {
     const attendance = await this.findAttendanceTodayByUserId(userId);
+    if (!attendance) {
+      console.log(`tidak ada attendance`);
+    }
     return this.prisma.attendance.update({
       where: {
         attendance_id: attendance?.attendance_id,

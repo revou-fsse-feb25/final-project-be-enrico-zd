@@ -75,6 +75,20 @@ export class LeaveRequestService {
     );
   }
 
+  async findAllLeaveRequestByUserId(userId: number) {
+    const userDetail =
+      await this.userCompDetailService.findUserCompByUserId(userId);
+
+    if (!userDetail) {
+      throw new NotFoundException('User detail not found');
+    }
+
+    return this.leaveRequestRepository.findAllLeaveRequestByUserId(
+      userId,
+      userDetail.company_id,
+    );
+  }
+
   async findLeaveTypeById(id: number) {
     return this.leaveRequestRepository.findLeaveTypeById(id);
   }

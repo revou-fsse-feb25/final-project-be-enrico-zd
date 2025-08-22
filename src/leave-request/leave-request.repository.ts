@@ -55,6 +55,15 @@ export class LeaveRequestRepository {
     });
   }
 
+  async findAllLeaveRequestByUserId(userId: number, companyId: number) {
+    return this.prisma.leaveRequest.findMany({
+      where: {
+        company_id: companyId,
+        user_id: userId,
+      },
+    });
+  }
+
   async findLeaveTypeById(id: number) {
     return this.prisma.leaveRequest.findUnique({
       where: {

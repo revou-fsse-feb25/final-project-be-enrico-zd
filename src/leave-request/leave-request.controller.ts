@@ -68,7 +68,21 @@ export class LeaveRequestController {
 
       return leaveRequest;
     } catch (error) {
-      console.error(error)
+      console.error(error);
+    }
+  }
+
+  @Get('/employee')
+  async findAllLeaveRequestByUserId(@CurrentUser() user: User) {
+    try {
+      const leaveRequest =
+        await this.leaveRequestService.findAllLeaveRequestByUserId(
+          user.user_id,
+        );
+
+      return leaveRequest;
+    } catch (error) {
+      console.error(error);
     }
   }
 

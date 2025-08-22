@@ -23,7 +23,6 @@ export class AttendanceService {
   @Cron('0 5 0 * * *', { name: randomUUID(), timeZone: 'Asia/Jakarta' })
   async createAllDefaultUserAttendance() {
     const userDetail = await this.userCompDetailService.findAllUserCom();
-
     return await this.attendanceRepository.createAllDefaultUserAttendance(
       userDetail,
     );
