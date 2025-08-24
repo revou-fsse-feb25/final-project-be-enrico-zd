@@ -40,6 +40,10 @@ export class AttendanceService {
     return this.attendanceRepository.findAllUserAttendanceHistory(userId);
   }
 
+  async findAttendanceTodayByUserId(userId: number) {
+    return this.attendanceRepository.findAttendanceTodayByUserId(userId);
+  }
+
   async employeeCheckIn(userId: number, role: Role, data: CheckInDto) {
     const userDetail =
       await this.userCompDetailService.findUserCompByUserId(userId);
@@ -52,6 +56,15 @@ export class AttendanceService {
 
     if (!shift?.opening_time) {
       throw new UnprocessableEntityException('shift not have a opening time');
+    }
+
+    const attendance =
+      await this.attendanceRepository.findAttendanceTodayByUserId(userId);
+
+    if (attendance?.check_in_at) {
+      throw new UnprocessableEntityException(
+        'already check in record for today',
+      );
     }
 
     return this.attendanceRepository.employeeCheckIn(userId, {
@@ -82,6 +95,12 @@ export class AttendanceService {
 
     if (!attendance?.check_in_at) {
       throw new UnprocessableEntityException('no check in record for today');
+    }
+
+    if (attendance?.check_out_at) {
+      throw new UnprocessableEntityException(
+        'already check out record for today',
+      );
     }
 
     return this.attendanceRepository.employeeCheckOut(userId, {

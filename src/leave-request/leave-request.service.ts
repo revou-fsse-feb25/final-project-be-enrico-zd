@@ -3,6 +3,7 @@ import { CreateLeaveRequestDto } from './dto/create-leave-request.dto';
 import { UpdateLeaveRequestDto } from './dto/update-leave-request.dto';
 import { LeaveRequestRepository } from './leave-request.repository';
 import { UserCompanyDetailService } from 'src/user-company-detail/user-company-detail.service';
+import { toEndOfDayUTC } from 'src/utils/end-of-day.utils';
 
 @Injectable()
 export class LeaveRequestService {
@@ -25,6 +26,8 @@ export class LeaveRequestService {
       throw new Error('end date must be after start date');
     }
 
+    const endLeave = toEndOfDayUTC(to)
+
     // count requested_day
     const MS_PER_DAY = 86_400_000;
     const requested_days =
@@ -37,7 +40,7 @@ export class LeaveRequestService {
       {
         leave_type_id,
         from,
-        to,
+        to: endLeave,
         reason,
         proof_image,
       },

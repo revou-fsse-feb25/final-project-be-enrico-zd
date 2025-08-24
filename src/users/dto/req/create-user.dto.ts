@@ -1,4 +1,5 @@
 import { Gender, Role } from '@prisma/client';
+import { Type } from 'class-transformer';
 import {
   IsDate,
   IsEmail,
@@ -46,6 +47,7 @@ export class CreateUserDto {
   phone_number: string;
 
   @IsNotEmpty()
+  @Type(() => Date)
   @IsDate()
   date_of_birth: Date;
 

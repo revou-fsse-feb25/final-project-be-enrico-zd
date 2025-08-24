@@ -42,6 +42,11 @@ export class AttendanceController {
     return this.attendanceService.findAllUserAttendanceHistory(user.user_id);
   }
 
+  @Get('/employee/absent')
+  async findAttendanceTodayByUserId(@CurrentUser() user: User) {
+    return this.attendanceService.findAttendanceTodayByUserId(user.user_id);
+  }
+
   @Patch('checkin/:id')
   async employeeCheckIn(
     @Param('id', ParseIntPipe) id: number,
@@ -63,6 +68,6 @@ export class AttendanceController {
   @Patch('reset/:id')
   @Roles('ADMIN')
   async resetAttendance(@Param('id', ParseIntPipe) id: number) {
-    return this.attendanceService.resetAttendance(id)
+    return this.attendanceService.resetAttendance(id);
   }
 }

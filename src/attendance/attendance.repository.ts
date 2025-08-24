@@ -61,9 +61,13 @@ export class AttendanceRepository {
   }
 
   async findAttendanceTodayByUserId(userId: number) {
+    const now = new Date();
     return this.prisma.attendance.findFirst({
       where: {
-        AND: [{ user_id: userId }, { attendance_date: new Date() }],
+        AND: [
+          { user_id: userId },
+          { attendance_date: new Date(now.getTime() + 7 * 60 * 60 * 1000) },
+        ],
       },
     });
   }

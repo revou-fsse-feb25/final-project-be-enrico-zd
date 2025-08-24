@@ -10,6 +10,7 @@ async function bootstrap() {
       'http://localhost:3000',
       'https://final-project-fe-enrico-zd.vercel.app',
     ],
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
@@ -19,6 +20,7 @@ async function bootstrap() {
       whitelist: true,
       transform: true,
       forbidNonWhitelisted: true,
+      transformOptions: { enableImplicitConversion: true },
     }),
   );
   await app.listen(process.env.PORT ?? 5000);

@@ -52,6 +52,10 @@ export class LeaveRequestRepository {
         user_id: userId,
         leave_type_id: typeId,
       },
+      include: {
+        approver: true,
+        type: true,
+      },
     });
   }
 

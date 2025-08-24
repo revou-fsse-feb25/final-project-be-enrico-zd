@@ -7,7 +7,7 @@ Proyek ini adalah sebuah API HRMS (Human Resource Management System) yang diranc
 
 ## ✨ List of Features
 
-Anda bisa melihat semua fitur pada dokumentasi berikut [Postman Doc](https://documenter.getpostman.com/view/20230761/2sB3BLinRU)
+Anda bisa melihat semua fitur pada dokumentasi berikut [ERD Diagram](https://dbdocs.io/enricozada00/hrms-erd-enrico-zd)
 
 ---
 
