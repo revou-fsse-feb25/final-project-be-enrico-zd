@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { CreateLeaveRequestDto } from './dto/create-leave-request.dto';
-import { UpdateLeaveRequestDto } from './dto/update-leave-request.dto';
+import { CreateLeaveRequestDto } from './dto/req/create-leave-request.dto';
+import { UpdateLeaveRequestDto } from './dto/req/update-leave-request.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -81,6 +81,7 @@ export class LeaveRequestRepository {
     userId: number,
     data: UpdateLeaveRequestDto,
   ) {
+    const now = new Date();
     await this.findLeaveTypeById(id);
     return this.prisma.leaveRequest.update({
       where: {
@@ -89,7 +90,10 @@ export class LeaveRequestRepository {
       data: {
         ...data,
         approved_by: data.status === 'REJECTED' ? null : userId,
-        approved_at: data.status === 'REJECTED' ? null : new Date(),
+        approved_at:
+          data.status === 'REJECTED'
+            ? null
+            : new Date(now.getTime() + 7 * 60 * 60 * 1000),
       },
     });
   }

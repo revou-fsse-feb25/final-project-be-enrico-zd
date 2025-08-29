@@ -14,6 +14,8 @@ import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { RequestIdMiddleware } from './common/middlewares/request-id.middleware';
 import { LoggerMiddleware } from './common/middlewares/logger.middleware';
+import { APP_FILTER } from '@nestjs/core';
+import { RepositoryExceptionFilter } from './common/filters/repository-exception.filter';
 
 @Module({
   imports: [
@@ -32,7 +34,10 @@ import { LoggerMiddleware } from './common/middlewares/logger.middleware';
     ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_FILTER, useClass: RepositoryExceptionFilter },
+  ],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {

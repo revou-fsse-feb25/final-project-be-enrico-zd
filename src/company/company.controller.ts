@@ -7,6 +7,8 @@ import {
   UseGuards,
   Param,
   ParseIntPipe,
+  UseInterceptors,
+  UseFilters,
 } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { UpdateCompanyDto } from './dto/update-company.dto';
@@ -16,42 +18,32 @@ import { RolesGuard } from 'src/auth/guard/roles.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { User } from '@prisma/client';
+import { SerializationInterceptor } from 'src/common/interceptors/serialization.interceptors';
+import { RepositoryExceptionFilter } from 'src/common/filters/repository-exception.filter';
 
+@UseInterceptors(SerializationInterceptor)
+@UseFilters(RepositoryExceptionFilter)
 @Controller('company')
 export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
 
   @Post('/create')
   async createCompany(@Body() data: CreateCompanyDto) {
-    try {
-      const company = this.companyService.createCompany(data);
-      return company;
-    } catch (error) {
-      console.error(error);
-    }
+    const company = this.companyService.createCompany(data);
+    return company;
   }
 
   @Get(':id')
   async findCompanyById(@Param('id', ParseIntPipe) id: number) {
-    try {
-      const company = await this.companyService.findCompanyById(id);
-      return company;
-    } catch (error) {
-      console.error(error);
-    }
+    const company = await this.companyService.findCompanyById(id);
+    return company;
   }
 
   @Get()
   @UseGuards(JwtAuthGuard)
   async findCurrentCompany(@CurrentUser() user: User) {
-    try {
-      const company = await this.companyService.findCurrentCompany(
-        user.user_id,
-      );
-      return company;
-    } catch (error) {
-      console.error(error);
-    }
+    const company = await this.companyService.findCurrentCompany(user.user_id);
+    return company;
   }
 
   @Patch('/update')
@@ -61,33 +53,18 @@ export class CompanyController {
     @CurrentUser() user: User,
     @Body() data: UpdateCompanyDto,
   ) {
-    try {
-      const company = await this.companyService.updateCompany(
-        user.user_id,
-        data,
-      );
-      return company;
-    } catch (error) {
-      console.error(error);
-    }
+    const company = await this.companyService.updateCompany(user.user_id, data);
+    return company;
   }
   @Patch('/softDelete/:id')
   async softDeleteCompany(@Param('id', ParseIntPipe) id: number) {
-    try {
-      const company = await this.companyService.softDeleteCompany(id);
-      return company;
-    } catch (error) {
-      console.error(error);
-    }
+    const company = await this.companyService.softDeleteCompany(id);
+    return company;
   }
 
   @Patch('/restore/:id')
   async restoreCompany(@Param('id', ParseIntPipe) id: number) {
-    try {
-      const company = await this.companyService.restoreCompany(id);
-      return company;
-    } catch (error) {
-      console.error(error);
-    }
+    const company = await this.companyService.restoreCompany(id);
+    return company;
   }
 }

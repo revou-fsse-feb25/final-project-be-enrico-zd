@@ -8,45 +8,37 @@ import {
   Delete,
   ParseIntPipe,
   UseGuards,
+  UseInterceptors,
+  UseFilters,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/req/create-user.dto';
 import { UpdateUserDto } from './dto/req/update-user.dto';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
+import { SerializationInterceptor } from 'src/common/interceptors/serialization.interceptors';
+import { RepositoryExceptionFilter } from 'src/common/filters/repository-exception.filter';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 
+@UseInterceptors(SerializationInterceptor)
+@UseFilters(RepositoryExceptionFilter)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
   async createUser(@Body() data: CreateUserDto) {
-    try {
-      const user = await this.usersService.createUser(data);
-      return user;
-    } catch (error) {
-      console.log(error);
-    }
+    return this.usersService.createUser(data);
   }
 
   @Get()
   async findAllUser() {
-    try {
-      const users = await this.usersService.findAllUser();
-      return users;
-    } catch (error) {
-      console.log(error);
-    }
+    return this.usersService.findAllUser();
   }
 
   @Get(':id')
   async findUserById(@Param('id', ParseIntPipe) id: number) {
-    try {
-      const user = await this.usersService.findUserById(id);
-      return user;
-    } catch (error) {
-      console.log(error);
-    }
+    return this.usersService.findUserById(id);
   }
 
   @Patch(':id')
@@ -54,24 +46,16 @@ export class UsersController {
     @Param('id', ParseIntPipe) id: number,
     @Body() data: UpdateUserDto,
   ) {
-    try {
-      const user = await this.usersService.updateUser(id, data);
-      return user;
-    } catch (error) {
-      console.log(error);
-    }
+    return this.usersService.updateUser(id, data);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   async deleteUser(@Param('id', ParseIntPipe) id: number) {
-    try {
-      await this.usersService.deleteUser(id);
-      return {
-        message: `user with ID ${id} successfuly delete`,
-      }
-    } catch (error) {
-      console.log(error);
-    }
+    await this.usersService.deleteUser(id);
+    return {
+      message: `user with ID ${id} successfuly delete`,
+    };
   }
 }

@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateLeaveRequestDto } from './dto/create-leave-request.dto';
-import { UpdateLeaveRequestDto } from './dto/update-leave-request.dto';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { CreateLeaveRequestDto } from './dto/req/create-leave-request.dto';
+import { UpdateLeaveRequestDto } from './dto/req/update-leave-request.dto';
 import { LeaveRequestRepository } from './leave-request.repository';
 import { UserCompanyDetailService } from 'src/user-company-detail/user-company-detail.service';
 import { toEndOfDayUTC } from 'src/utils/end-of-day.utils';
@@ -23,7 +23,7 @@ export class LeaveRequestService {
     }
 
     if (from > to) {
-      throw new Error('end date must be after start date');
+      throw new BadRequestException('end date must be after start date');
     }
 
     const endLeave = toEndOfDayUTC(to)

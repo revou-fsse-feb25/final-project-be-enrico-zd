@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { CreateLeaveTypeDto } from './dto/create-leave-type.dto';
-import { UpdateLeaveTypeDto } from './dto/update-leave-type.dto';
+import { CreateLeaveTypeDto } from './dto/req/create-leave-type.dto';
+import { UpdateLeaveTypeDto } from './dto/req/update-leave-type.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { LeaveType } from '@prisma/client';
 

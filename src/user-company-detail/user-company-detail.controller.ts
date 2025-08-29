@@ -8,17 +8,24 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UseFilters,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UserCompanyDetailService } from './user-company-detail.service';
-import { CreateUserCompanyDetailDto } from './dto/create-user-company-detail.dto';
+import { CreateUserCompanyDetailDto } from './dto/req/create-user-company-detail.dto';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { User } from '@prisma/client';
 import { Roles } from 'src/auth/decorators/roles.decorator';
-import { UpdateUserCompanyDetailDto } from './dto/update-user-company-detail.dto';
+import { UpdateUserCompanyDetailDto } from './dto/req/update-user-company-detail.dto';
+import { SerializationInterceptor } from 'src/common/interceptors/serialization.interceptors';
+import { RepositoryExceptionFilter } from 'src/common/filters/repository-exception.filter';
+import { UserCompanyNotFoundRepositoryException } from 'src/common/exceptions/user-company-not-found.exception.repository';
 
+@UseInterceptors(SerializationInterceptor)
+@UseFilters(RepositoryExceptionFilter)
 @Controller('user-company-detail')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UserCompanyDetailController {
@@ -29,28 +36,28 @@ export class UserCompanyDetailController {
   @Get(':id')
   @Roles('ADMIN')
   async findUserCompById(@Param('id', ParseIntPipe) id: number) {
-    try {
-      const userCompDetail =
-        await this.userCompanyDetailService.findUserCompById(id);
-      return userCompDetail;
-    } catch (error) {
-      console.log(error);
-    }
+    const userCompDetail =
+      await this.userCompanyDetailService.findUserCompById(id);
+    return userCompDetail;
+  }
+
+  @Get('employee/:id')
+  @Roles('ADMIN')
+  async findUserCompByUserId(@Param('id', ParseIntPipe) id: number) {
+    const userCompDetail =
+      await this.userCompanyDetailService.findUserCompByUserId(id);
+    return userCompDetail;
   }
 
   @Get()
   @Roles('ADMIN')
   async findAllUserCompByCompanyId(@CurrentUser() user: User) {
-    try {
-      const userCompDetail =
-        await this.userCompanyDetailService.findAllUserCompByCompanyId(
-          user.user_id,
-        );
+    const userCompDetail =
+      await this.userCompanyDetailService.findAllUserCompByCompanyId(
+        user.user_id,
+      );
 
-      return userCompDetail;
-    } catch (error) {
-      console.error(error);
-    }
+    return userCompDetail;
   }
 
   @Post('/create')
@@ -59,24 +66,21 @@ export class UserCompanyDetailController {
     @CurrentUser() user: User,
     @Body() data: CreateUserCompanyDetailDto,
   ) {
-    try {
-      const userDetail =
-        await this.userCompanyDetailService.findUserCompByUserId(user.user_id);
+    const userDetail = await this.userCompanyDetailService.findUserCompByUserId(
+      user.user_id,
+    );
 
-      if (!userDetail) {
-        throw new NotFoundException('user detail not found');
-      }
-
-      const userCompDetail =
-        await this.userCompanyDetailService.createUserCompDetail(
-          userDetail.company_id,
-          data,
-        );
-
-      return userCompDetail;
-    } catch (error) {
-      console.log(error);
+    if (!userDetail) {
+      throw new UserCompanyNotFoundRepositoryException();
     }
+
+    const userCompDetail =
+      await this.userCompanyDetailService.createUserCompDetail(
+        userDetail.company_id,
+        data,
+      );
+
+    return userCompDetail;
   }
 
   @Patch(':id')
@@ -85,26 +89,18 @@ export class UserCompanyDetailController {
     @Param('id', ParseIntPipe) id: number,
     @Body() data: UpdateUserCompanyDetailDto,
   ) {
-    try {
-      const usercompDetail = await this.userCompanyDetailService.updateUserComp(
-        id,
-        data,
-      );
-      return usercompDetail;
-    } catch (error) {
-      console.error(error);
-    }
+    const usercompDetail = await this.userCompanyDetailService.updateUserComp(
+      id,
+      data,
+    );
+    return usercompDetail;
   }
 
   @Delete(':id')
   @Roles('ADMIN')
   async deleteUserComp(@Param('id', ParseIntPipe) id: number) {
-    try {
-      const userCompDetail =
-        await this.userCompanyDetailService.deleteUserComp(id);
-      return userCompDetail;
-    } catch (error) {
-      console.error(error);
-    }
+    const userCompDetail =
+      await this.userCompanyDetailService.deleteUserComp(id);
+    return userCompDetail;
   }
 }

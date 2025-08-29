@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   forwardRef,
   Inject,
   Injectable,
@@ -11,9 +12,11 @@ import { Company, StatusActive } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { ShiftsService } from 'src/shifts/shifts.service';
-import { CreateShiftDto } from 'src/shifts/dto/create-shift.dto';
-import { CreateUserCompanyDetailDto } from 'src/user-company-detail/dto/create-user-company-detail.dto';
+import { CreateShiftDto } from 'src/shifts/dto/req/create-shift.dto';
+import { CreateUserCompanyDetailDto } from 'src/user-company-detail/dto/req/create-user-company-detail.dto';
 import { UserCompanyDetailService } from 'src/user-company-detail/user-company-detail.service';
+import { UserCompanyNotFoundRepositoryException } from 'src/common/exceptions/user-company-not-found.exception.repository';
+import { CompanyNotFoundRepositoryException } from 'src/common/exceptions/company-not-found.exception.repository';
 
 @Injectable()
 export class CompanyService {
@@ -91,20 +94,32 @@ export class CompanyService {
       await this.userCompDetailService.findUserCompByUserId(userId);
 
     if (!userDetail) {
-      throw new NotFoundException('user detail not found');
+      throw new UserCompanyNotFoundRepositoryException();
     }
 
-    return await this.companyRepository.findCurrentCompany(
+    const company = await this.companyRepository.findCurrentCompany(
       userDetail.company_id,
     );
+
+    if (!company) {
+      throw new CompanyNotFoundRepositoryException();
+    }
+
+    return company;
   }
 
   async findCompanyById(id: number): Promise<Company | null> {
-    return this.companyRepository.findCompanyById(id);
+    const company = await this.companyRepository.findCompanyById(id);
+
+    if (!company) {
+      throw new CompanyNotFoundRepositoryException();
+    }
+    return company;
   }
 
   async findCompanyByName(name: string): Promise<Company | null> {
-    return this.companyRepository.findCompanyByName(name);
+    const company = await this.companyRepository.findCompanyByName(name);
+    return company;
   }
 
   async updateCompany(
@@ -115,17 +130,29 @@ export class CompanyService {
       await this.userCompDetailService.findUserCompByUserId(userId);
 
     if (!userDetail) {
-      throw new NotFoundException('user detail not found');
+      throw new UserCompanyNotFoundRepositoryException();
     }
 
-    return this.companyRepository.updateCompany(userDetail.company_id, data);
+    try {
+      return this.companyRepository.updateCompany(userDetail.company_id, data);
+    } catch {
+      throw new BadRequestException('Failed to update company');
+    }
   }
 
   async softDeleteCompany(id: number): Promise<Company> {
-    return this.companyRepository.softDeleteCompany(id);
+    try {
+      return this.companyRepository.softDeleteCompany(id);
+    } catch {
+      throw new BadRequestException('Failed to delete company');
+    }
   }
 
   async restoreCompany(id: number): Promise<Company> {
-    return this.companyRepository.restoreCompany(id);
+    try {
+      return this.companyRepository.restoreCompany(id);
+    } catch {
+      throw new BadRequestException('Failed to restore company');
+    }
   }
 }

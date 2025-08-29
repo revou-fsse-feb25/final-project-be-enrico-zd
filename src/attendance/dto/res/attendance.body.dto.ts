@@ -1,4 +1,8 @@
-import { Expose } from 'class-transformer';
+import { AttendanceBy, AttendanceStatus, StatusApproval } from '@prisma/client';
+import { Expose, Type } from 'class-transformer';
+import { CompanyResponseDTO } from 'src/company/dto/res/company.body.dto';
+import { ShiftResponseDTO } from 'src/shifts/dto/res/shift.body.dto';
+import { UserResponseDTO } from 'src/users/dto/res/user.body.dto';
 
 export class AttendanceResponseDto {
   @Expose()
@@ -23,20 +27,32 @@ export class AttendanceResponseDto {
   check_out_at: Date;
 
   @Expose()
-  attendance_status: Date;
+  attendance_status: AttendanceStatus;
 
   @Expose()
-  attendance_by: Date;
+  attendance_by: AttendanceBy;
 
   @Expose()
-  hours_work_min: Date;
+  hours_work_min: number;
 
   @Expose()
-  late_minute: Date;
+  late_minute: number;
 
   @Expose()
-  overtime_min: Date;
+  overtime_min: number;
 
   @Expose()
-  status: Date;
+  status: StatusApproval;
+
+  @Expose()
+  @Type(() => UserResponseDTO)
+  user: UserResponseDTO;
+
+  @Expose()
+  @Type(() => CompanyResponseDTO)
+  company: CompanyResponseDTO;
+
+  @Expose()
+  @Type(() => ShiftResponseDTO)
+  shift: ShiftResponseDTO;
 }

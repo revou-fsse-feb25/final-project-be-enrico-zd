@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { createEmployeeDto } from './dto/create-user-company-detail.dto';
+import { createEmployeeDto } from './dto/req/create-user-company-detail.dto';
 import { UserCompanyDetail } from '@prisma/client';
-import { UpdateEmployeeDto } from './dto/update-user-company-detail.dto';
+import { UpdateEmployeeDto } from './dto/req/update-user-company-detail.dto';
 
 @Injectable()
 export class UserCompanyDetailRepository {
@@ -22,7 +22,7 @@ export class UserCompanyDetailRepository {
         user_id: true,
         company_id: true,
         shift_id: true,
-      }
+      },
     });
   }
 
@@ -64,6 +64,10 @@ export class UserCompanyDetailRepository {
     const userCompany = await this.prisma.userCompanyDetail.findFirst({
       where: {
         user_id: userId,
+      },
+      include: {
+        company: true,
+        user: true,
       },
     });
 

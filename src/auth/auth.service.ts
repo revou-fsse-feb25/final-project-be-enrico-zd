@@ -8,9 +8,9 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from 'src/users/users.service';
 import { LoginDto, RegisterDTO } from './dto/req/auth.dto';
-import { Company, Role, User } from '@prisma/client';
+import { Role, User } from '@prisma/client';
 import { CompanyService } from 'src/company/company.service';
-import { comparePassword, hashPassword } from 'src/utils/password-hash';
+import { comparePassword } from 'src/utils/password-hash';
 import { UserCompanyDetailService } from 'src/user-company-detail/user-company-detail.service';
 
 @Injectable()

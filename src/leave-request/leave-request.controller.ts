@@ -8,17 +8,19 @@ import {
   ParseIntPipe,
   UseGuards,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
 import { LeaveRequestService } from './leave-request.service';
-import { CreateLeaveRequestDto } from './dto/create-leave-request.dto';
-import { UpdateLeaveRequestDto } from './dto/update-leave-request.dto';
+import { CreateLeaveRequestDto } from './dto/req/create-leave-request.dto';
+import { UpdateLeaveRequestDto } from './dto/req/update-leave-request.dto';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { User } from '@prisma/client';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
-import { FilterLeaveRequestDto } from './dto/filter-leave-request.dto';
+import { SerializationInterceptor } from 'src/common/interceptors/serialization.interceptors';
 
+@UseInterceptors(SerializationInterceptor)
 @Controller('leave-request')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class LeaveRequestController {
@@ -29,29 +31,21 @@ export class LeaveRequestController {
     @Body() data: CreateLeaveRequestDto,
     @CurrentUser() user: User,
   ) {
-    try {
-      const leaveRequest = await this.leaveRequestService.createLeaveRequest(
-        data,
-        user.user_id,
-      );
-      return leaveRequest;
-    } catch (error) {
-      console.error(error);
-    }
+    const leaveRequest = await this.leaveRequestService.createLeaveRequest(
+      data,
+      user.user_id,
+    );
+    return leaveRequest;
   }
 
   @Get()
   @Roles('ADMIN')
   async findAllLeaveRequestByCompanyId(@CurrentUser() user: User) {
-    try {
-      const leaveRequest =
-        await this.leaveRequestService.findAllLeaveRequestByCompanyId(
-          user.user_id,
-        );
-      return leaveRequest;
-    } catch (error) {
-      console.error(error);
-    }
+    const leaveRequest =
+      await this.leaveRequestService.findAllLeaveRequestByCompanyId(
+        user.user_id,
+      );
+    return leaveRequest;
   }
 
   @Get('/filter')
@@ -59,41 +53,27 @@ export class LeaveRequestController {
     @CurrentUser() user: User,
     @Query('leave_type_id', ParseIntPipe) typeId: number,
   ) {
-    try {
-      const leaveRequest =
-        await this.leaveRequestService.findAllLeaveRequestByType(
-          user.user_id,
-          typeId,
-        );
+    const leaveRequest =
+      await this.leaveRequestService.findAllLeaveRequestByType(
+        user.user_id,
+        typeId,
+      );
 
-      return leaveRequest;
-    } catch (error) {
-      console.error(error);
-    }
+    return leaveRequest;
   }
 
   @Get('/employee')
   async findAllLeaveRequestByUserId(@CurrentUser() user: User) {
-    try {
-      const leaveRequest =
-        await this.leaveRequestService.findAllLeaveRequestByUserId(
-          user.user_id,
-        );
+    const leaveRequest =
+      await this.leaveRequestService.findAllLeaveRequestByUserId(user.user_id);
 
-      return leaveRequest;
-    } catch (error) {
-      console.error(error);
-    }
+    return leaveRequest;
   }
 
   @Get(':id')
   async findLeaveTypeById(@Param('id', ParseIntPipe) id: number) {
-    try {
-      const leaveRequest = await this.leaveRequestService.findLeaveTypeById(id);
-      return leaveRequest;
-    } catch (error) {
-      console.error(error);
-    }
+    const leaveRequest = await this.leaveRequestService.findLeaveTypeById(id);
+    return leaveRequest;
   }
 
   @Patch(':id')

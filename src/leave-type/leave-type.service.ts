@@ -1,8 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateLeaveTypeDto } from './dto/create-leave-type.dto';
-import { UpdateLeaveTypeDto } from './dto/update-leave-type.dto';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { CreateLeaveTypeDto } from './dto/req/create-leave-type.dto';
+import { UpdateLeaveTypeDto } from './dto/req/update-leave-type.dto';
 import { LeaveTypeRepository } from './leave-type.repository';
 import { UserCompanyDetailService } from 'src/user-company-detail/user-company-detail.service';
+import { UserCompanyNotFoundRepositoryException } from 'src/common/exceptions/user-company-not-found.exception.repository';
+import { LeaveTypeNotFoundRepositoryException } from 'src/common/exceptions/leave-type-not-found.exception.repository';
 
 @Injectable()
 export class LeaveTypeService {
@@ -16,12 +22,17 @@ export class LeaveTypeService {
       await this.userCompDetailService.findUserCompByUserId(userId);
 
     if (!userDetail) {
-      throw new NotFoundException('User detail not found');
+      throw new UserCompanyNotFoundRepositoryException();
     }
-    return await this.leaveTypeRepository.createLeaveType(
-      data,
-      userDetail.company_id,
-    );
+
+    try {
+      return await this.leaveTypeRepository.createLeaveType(
+        data,
+        userDetail.company_id,
+      );
+    } catch {
+      throw new BadRequestException('Failed to create leave type');
+    }
   }
 
   async findAllLeaveTypeByComapnyId(userId: number) {
@@ -29,23 +40,40 @@ export class LeaveTypeService {
       await this.userCompDetailService.findUserCompByUserId(userId);
 
     if (!userDetail) {
-      throw new NotFoundException('User detail not found');
+      throw new UserCompanyNotFoundRepositoryException();
     }
 
-    return await this.leaveTypeRepository.findAllLeaveTypeByCompanyId(
-      userDetail.company_id,
-    );
+    const leaveType =
+      await this.leaveTypeRepository.findAllLeaveTypeByCompanyId(
+        userDetail.company_id,
+      );
+
+    return leaveType;
   }
 
   async findLeaveTypeById(id: number) {
-    return this.leaveTypeRepository.findLeaveTypeById(id);
+    const leaveType = await this.leaveTypeRepository.findLeaveTypeById(id);
+
+    if (!leaveType) {
+      throw new LeaveTypeNotFoundRepositoryException();
+    }
+
+    return leaveType;
   }
 
   async updateLeaveType(id: number, data: UpdateLeaveTypeDto) {
-    return this.leaveTypeRepository.updateLeaveType(id, data);
+    try {
+      return this.leaveTypeRepository.updateLeaveType(id, data);
+    } catch {
+      throw new BadRequestException('Failed to update leave type');
+    }
   }
 
   async deleteLeaveType(id: number) {
-    return this.leaveTypeRepository.deleteLeaveType(id);
+    try {
+      return this.leaveTypeRepository.deleteLeaveType(id);
+    } catch {
+      throw new BadRequestException('Failed to update leave type');
+    }
   }
 }

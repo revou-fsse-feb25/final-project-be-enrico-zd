@@ -28,6 +28,22 @@ export class AttendanceRepository {
     });
   }
 
+  async createDefaultUserAttendance(data: CreateAttendanceDto) {
+    const now = new Date();
+    return this.prisma.attendance.create({
+      data: {
+        ...data,
+        attendance_date: new Date(now.getTime() + 7 * 60 * 60 * 1000),
+      },
+      select: {
+        attendance_id: true,
+        user_id: true,
+        company_id: true,
+        attendance_date: true,
+      },
+    });
+  }
+
   async findAllCompanyAttendance(companyId: number) {
     const now = new Date();
     return this.prisma.attendance.findMany({

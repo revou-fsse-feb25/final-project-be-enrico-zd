@@ -7,6 +7,8 @@ import {
   Query,
   ParseIntPipe,
   UseGuards,
+  UseInterceptors,
+  UseFilters,
 } from '@nestjs/common';
 import { AttendanceService } from './attendance.service';
 import { CheckInDto, CheckOutDto } from './dto/req/update-attendance.dto';
@@ -15,7 +17,11 @@ import { User } from '@prisma/client';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
+import { SerializationInterceptor } from 'src/common/interceptors/serialization.interceptors';
+import { RepositoryExceptionFilter } from 'src/common/filters/repository-exception.filter';
 
+@UseInterceptors(SerializationInterceptor)
+@UseFilters(RepositoryExceptionFilter)
 @Controller('attendance')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class AttendanceController {
