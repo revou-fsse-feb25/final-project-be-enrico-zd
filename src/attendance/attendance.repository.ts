@@ -63,6 +63,9 @@ export class AttendanceRepository {
       where: {
         user_id: userId,
       },
+      orderBy: {
+        attendance_date: 'asc',
+      },
     });
   }
 
