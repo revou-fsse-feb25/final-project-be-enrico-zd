@@ -3,7 +3,6 @@ import {
   forwardRef,
   Inject,
   Injectable,
-  NotFoundException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { CompanyRepository } from './company.repository';
@@ -29,7 +28,6 @@ export class CompanyService {
   ) {}
 
   async createCompany(data: CreateCompanyDto): Promise<Company> {
-    const hashed = await bcrypt.hash('admin2025', 10);
     return this.prisma.$transaction(async () => {
       const company = await this.companyRepository.createCompany(data);
 
@@ -64,7 +62,7 @@ export class CompanyService {
           gender: 'MALE',
           role: 'ADMIN',
           username: 'admin123',
-          password: hashed,
+          password: 'admin2025',
         },
         employee: {
           user_id: 1,
