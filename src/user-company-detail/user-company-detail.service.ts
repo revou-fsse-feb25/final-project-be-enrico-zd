@@ -161,7 +161,7 @@ export class UserCompanyDetailService {
     }
 
     const shift = await this.shiftService.findAllShiftByCompanyId(
-      company.company_id,
+      userDetail.user_id,
     );
 
     if (!shift) {
