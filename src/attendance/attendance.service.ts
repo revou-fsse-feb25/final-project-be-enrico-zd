@@ -95,8 +95,6 @@ export class AttendanceService {
     const userDetail =
       await this.userCompDetailService.findUserCompByUserId(userId);
 
-    console.log(userDetail);
-
     if (!userDetail) {
       throw new UserCompanyNotFoundRepositoryException();
     }

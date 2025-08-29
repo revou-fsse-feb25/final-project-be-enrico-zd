@@ -6,6 +6,7 @@ import {
   resetAttendanceDto,
 } from './dto/req/update-attendance.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { AttendanceNotFoundRepositoryException } from 'src/common/exceptions/attendance-not-found.exception.repository';
 
 @Injectable()
 export class AttendanceRepository {
@@ -91,7 +92,7 @@ export class AttendanceRepository {
   async employeeCheckIn(userId: number, data: CheckInDto) {
     const attendance = await this.findAttendanceTodayByUserId(userId);
     if (!attendance) {
-      console.log(`tidak ada attendance`);
+      throw new AttendanceNotFoundRepositoryException();
     }
     return this.prisma.attendance.update({
       where: {

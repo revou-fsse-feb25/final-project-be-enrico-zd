@@ -138,9 +138,6 @@ export class AuthService {
       refresh_token: tokens.refresh_token,
     });
 
-    console.log(existingCompany.company_id);
-    console.log(existingUser.user_id);
-
     return {
       tokens,
       user: existingUser,
